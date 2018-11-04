@@ -1,7 +1,10 @@
 package com.bv_gruppe_d.imagej;
 
+import java.awt.Scrollbar;
+
 import ij.IJ;
 import ij.ImagePlus;
+import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
@@ -20,11 +23,27 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 	public void run(ImageProcessor ip) {
 		initializeImageInformation(ip);
 		
-		maximumPixelValue = 255;
-		minimumPixelValue = 0;
+		GenericDialog gd = generateUserDialog();
+		gd.showDialog();
 		
-		automaticContrastAdaption(ip);
-		
+		if (gd.wasOKed()) {
+			minimumPixelValue = ((Scrollbar)gd.getSliders().elementAt(0)).getValue();
+			maximumPixelValue = ((Scrollbar)gd.getSliders().elementAt(1)).getValue();
+			
+			if(minimumPixelValue >= maximumPixelValue) {
+				IJ.showMessage("Ungültige Eingabe der Pixelwerte.");
+				return;
+			}
+			
+			automaticContrastAdaption(ip);
+		}		
+	}
+
+	private GenericDialog generateUserDialog() {
+		GenericDialog gd = new GenericDialog("Kontrastanpassung");
+		gd.addSlider("Minimaler Pixelwert", 0, 255, 0);
+		gd.addSlider("Maximaler Pixelwert", 0, 255, 255);
+		return gd;
 	}
 
 	private void automaticContrastAdaption(ImageProcessor ip) {
