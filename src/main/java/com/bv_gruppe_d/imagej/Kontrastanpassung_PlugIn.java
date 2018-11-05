@@ -49,10 +49,24 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 		width = ip.getWidth();
 		height = ip.getHeight();
 		histogram = ip.getHistogram();
-		highestPixelValue = (int)ip.getMax();
-		lowestPixelValue = (int)ip.getMin();
+		highestPixelValue = getHighestPixelValue(histogram);
+		lowestPixelValue = getLowestPixelValue(histogram);
 	}
 	
+	private int getLowestPixelValue(int[] histogram) {
+		int pixelValue = 0;
+		while(histogram[pixelValue] == 0)
+			pixelValue++;
+		return pixelValue;
+	}
+
+	private int getHighestPixelValue(int[] histogram) {
+		int pixelValue = 255;
+		while(histogram[pixelValue] == 0)
+			pixelValue--;
+		return pixelValue;
+	}
+
 	private void executeContrastAdaption(ImageProcessor ip) {
 		if (usesNoSaturation())
 			automaticContrastAdaption(ip);
