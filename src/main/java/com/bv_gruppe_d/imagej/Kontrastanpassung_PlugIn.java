@@ -1,10 +1,7 @@
 package com.bv_gruppe_d.imagej;
 
-import java.awt.Scrollbar;
-
 import ij.IJ;
 import ij.ImagePlus;
-import ij.gui.GenericDialog;
 import ij.plugin.filter.PlugInFilter;
 import ij.process.ImageProcessor;
 
@@ -18,32 +15,53 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 	
 	private int maximumPixelValue;
 	private int minimumPixelValue;
+	private double saturation;
 	
 	@Override
 	public void run(ImageProcessor ip) {
-		initializeImageInformation(ip);
 		
-		GenericDialog gd = generateUserDialog();
-		gd.showDialog();
+		ContrastAdaptionUserDialog dialog = new ContrastAdaptionUserDialog();
+		dialog.showDialog();
 		
-		if (gd.wasOKed()) {
-			minimumPixelValue = ((Scrollbar)gd.getSliders().elementAt(0)).getValue();
-			maximumPixelValue = ((Scrollbar)gd.getSliders().elementAt(1)).getValue();
+		if(!dialog.wasCanceled()) {
+			getUserPreferences(dialog);
 			
-			if(minimumPixelValue >= maximumPixelValue) {
+			if (preferencesAreValid()) {
+				initializeImageInformation(ip);
+				executeContrastAdaption(ip);	
+			} else {
 				IJ.showMessage("Ungültige Eingabe der Pixelwerte.");
-				return;
 			}
-			
-			automaticContrastAdaption(ip);
-		}		
+		}
 	}
 
-	private GenericDialog generateUserDialog() {
-		GenericDialog gd = new GenericDialog("Kontrastanpassung");
-		gd.addSlider("Minimaler Pixelwert", 0, 255, 0);
-		gd.addSlider("Maximaler Pixelwert", 0, 255, 255);
-		return gd;
+	private void getUserPreferences(ContrastAdaptionUserDialog dialog) {
+		minimumPixelValue = dialog.getMinimumPixelValue();
+		maximumPixelValue = dialog.getMaximumPixelValue();
+		saturation = dialog.getSaturationValue();		
+	}
+
+	private boolean preferencesAreValid() {
+		return minimumPixelValue < maximumPixelValue;
+	}
+	
+	private void initializeImageInformation(ImageProcessor ip) {
+		width = ip.getWidth();
+		height = ip.getHeight();
+		histogram = ip.getHistogram();
+		highestPixelValue = (int)ip.getMax();
+		lowestPixelValue = (int)ip.getMin();
+	}
+	
+	private void executeContrastAdaption(ImageProcessor ip) {
+		if (usesNoSaturation())
+			automaticContrastAdaption(ip);
+		else
+			modifiedContrastAdaption(ip);
+	}
+
+	private boolean usesNoSaturation() {
+		return saturation == 0;
 	}
 
 	private void automaticContrastAdaption(ImageProcessor ip) {
@@ -56,31 +74,57 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 			}
 		}
 	}
-
-	private void initializeImageInformation(ImageProcessor ip) {
-		width = ip.getWidth();
-		height = ip.getHeight();
-		histogram = ip.getHistogram();
+	
+	private void modifiedContrastAdaption(ImageProcessor ip) {
+		int modifiedHighestPixelValue = calculateHighestModifiedPixelValue();
+		int modifiedLowestPixelValue = calculateLowestModifiedPixelValue();
 		
-		extractLowestPixelValueFromHistogram();
-		extractHighestPixelValueFromHistogram();
+		for (int h = 0; h < height; h++) {
+			for (int w = 0; w < width; w++) {
+				int oldPixelValue = ip.getPixel(w, h);
+				int newPixelValue;
+				
+				if (oldPixelValue > modifiedLowestPixelValue && oldPixelValue < modifiedHighestPixelValue) {
+					newPixelValue = minimumPixelValue + 
+							(oldPixelValue - modifiedLowestPixelValue) * (maximumPixelValue - minimumPixelValue) / (modifiedHighestPixelValue - modifiedLowestPixelValue);
+					ip.putPixel(w, h, newPixelValue);
+				} else if(oldPixelValue <= modifiedLowestPixelValue) {
+					newPixelValue = minimumPixelValue;
+				}else {
+					newPixelValue = maximumPixelValue;
+				}
+				
+				ip.putPixel(w, h, newPixelValue);
+			}
+		}
 	}
 
-	private void extractHighestPixelValueFromHistogram() {
-		highestPixelValue = 255;
-		while(histogram[highestPixelValue] == 0)
-			highestPixelValue--;
+	private int calculateLowestModifiedPixelValue() {
+		int modifiedPixelValue = 0;
+		int border = (int) Math.ceil(saturation * height * width);
+		int sum = 0;
+		
+		while(sum < border) {
+			sum += histogram[modifiedPixelValue];
+			modifiedPixelValue++;
+		}
+		return modifiedPixelValue;
 	}
 
-	private void extractLowestPixelValueFromHistogram() {
-		lowestPixelValue = 0;
-		while(histogram[lowestPixelValue] == 0)
-			lowestPixelValue++;
+	private int calculateHighestModifiedPixelValue() {
+		int modifiedPixelValue = 255;
+		int border = (int) (saturation * height * width);
+		int sum = 0;
+
+		while(sum < border) {
+			sum += histogram[modifiedPixelValue];
+			modifiedPixelValue--;
+		}
+		return modifiedPixelValue;
 	}
 
 	@Override
 	public int setup(String arg0, ImagePlus img) {
 		return DOES_8G;
 	}
-
 }
