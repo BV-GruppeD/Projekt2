@@ -10,8 +10,6 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 	private int width;
 	private int height;
 	private int[] histogram;
-	private int lowestPixelValue;
-	private int highestPixelValue;
 	
 	private int maximumPixelValue;
 	private int minimumPixelValue;
@@ -49,8 +47,24 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 		width = ip.getWidth();
 		height = ip.getHeight();
 		histogram = ip.getHistogram();
-		highestPixelValue = getHighestPixelValue(histogram);
-		lowestPixelValue = getLowestPixelValue(histogram);
+	}
+
+	private void executeContrastAdaption(ImageProcessor ip) {
+		if (usesNoSaturation())
+			automaticContrastAdaption(ip);
+		else
+			modifiedContrastAdaption(ip);
+	}
+
+	private boolean usesNoSaturation() {
+		return saturation == 0;
+	}
+
+	private void automaticContrastAdaption(ImageProcessor ip) {
+		int highestPixelValue = getHighestPixelValue(histogram);
+		int lowestPixelValue = getLowestPixelValue(histogram);
+		
+		calculateNewPixelValues(ip, highestPixelValue, lowestPixelValue);
 	}
 	
 	private int getLowestPixelValue(int[] histogram) {
@@ -66,53 +80,33 @@ public class Kontrastanpassung_PlugIn implements PlugInFilter {
 			pixelValue--;
 		return pixelValue;
 	}
-
-	private void executeContrastAdaption(ImageProcessor ip) {
-		if (usesNoSaturation())
-			automaticContrastAdaption(ip);
-		else
-			modifiedContrastAdaption(ip);
-	}
-
-	private boolean usesNoSaturation() {
-		return saturation == 0;
-	}
-
-	private void automaticContrastAdaption(ImageProcessor ip) {
+	
+	private void calculateNewPixelValues(ImageProcessor ip, int highestPixelValue, int lowestPixelValue) {
+		double scalingFactor = (double)(maximumPixelValue - minimumPixelValue) / (highestPixelValue - lowestPixelValue);
+		
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
 				int oldPixelValue = ip.getPixel(w, h);
-				int newPixelValue = minimumPixelValue + 
-						(oldPixelValue - lowestPixelValue) * (maximumPixelValue - minimumPixelValue) / (highestPixelValue - lowestPixelValue);
+				
+				int newPixelValue = (int) (minimumPixelValue + (oldPixelValue - lowestPixelValue) * scalingFactor);
+				newPixelValue = clampPixelValue(newPixelValue, 0, 255);
+				
 				ip.putPixel(w, h, newPixelValue);
 			}
 		}
 	}
 	
+	private int clampPixelValue(int value, int minimumPixelValue, int maximumPixelValue) {
+		return Math.min(Math.max(minimumPixelValue, value), maximumPixelValue);
+	}
+
 	private void modifiedContrastAdaption(ImageProcessor ip) {
 		int modifiedHighestPixelValue = calculateHighestModifiedPixelValue();
 		int modifiedLowestPixelValue = calculateLowestModifiedPixelValue();
 		
-		for (int h = 0; h < height; h++) {
-			for (int w = 0; w < width; w++) {
-				int oldPixelValue = ip.getPixel(w, h);
-				int newPixelValue;
-				
-				if (oldPixelValue > modifiedLowestPixelValue && oldPixelValue < modifiedHighestPixelValue) {
-					newPixelValue = minimumPixelValue + 
-							(oldPixelValue - modifiedLowestPixelValue) * (maximumPixelValue - minimumPixelValue) / (modifiedHighestPixelValue - modifiedLowestPixelValue);
-					ip.putPixel(w, h, newPixelValue);
-				} else if(oldPixelValue <= modifiedLowestPixelValue) {
-					newPixelValue = minimumPixelValue;
-				}else {
-					newPixelValue = maximumPixelValue;
-				}
-				
-				ip.putPixel(w, h, newPixelValue);
-			}
-		}
+		calculateNewPixelValues(ip, modifiedHighestPixelValue, modifiedLowestPixelValue);
 	}
-
+	
 	private int calculateLowestModifiedPixelValue() {
 		int modifiedPixelValue = 0;
 		int border = (int) Math.ceil(saturation * height * width);
