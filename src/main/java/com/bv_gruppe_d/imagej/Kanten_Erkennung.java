@@ -15,8 +15,8 @@ public class Kanten_Erkennung implements PlugInFilter {
 		int height = ip.getHeight();
 		int[][] pixel_array = new int[width][height];		
 		int Hist[] = ip.getHistogram();
-		int p = (int)((int)(width*height)*0.01);
-		
+		double g = IJ.getNumber("Obere und untere Grenze in %", 1);
+		int p = (int)((int)(width*height)*(g/100));
 		
 		//Abspeichern des Bildes in einem Array
 		for (int h = 0; h < height; h++) {
@@ -27,10 +27,8 @@ public class Kanten_Erkennung implements PlugInFilter {
 		}
 		// Bestimmen des minimalen und Maximalen Farbwertes
 		int minmax[] = minandmax(pixel_array);
-		IJ.showMessage(Arrays.toString(minmax));
 		// Bestimmen der oberen und unten Grenze
 		int uplowlimit[] = upandlowlimit(Hist,p);
-		IJ.showMessage(Arrays.toString(uplowlimit));
 		
 		for (int h = 0; h < height; h++) {
 			for (int w = 0; w < width; w++) {
