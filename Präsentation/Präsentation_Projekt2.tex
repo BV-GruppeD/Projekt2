@@ -23,11 +23,11 @@
 \usecolortheme{seagull}
 \begin{document}
 	\author[Gruppe D]{Marcel Sandermann, Micha Beyer, Patrick Schlüter, Daniel Wolf}
-	\title{Kantenerkennung}
-	\subtitle{Projekt 1}
+	\title{Kontrastanpassung}
+	\subtitle{Projekt 2}
 	\logo{\pgfuseimage{meinlogo}}
 	\institute[HS OWL]{Hochschule Ostwestfalen Lippe}
-	\date{31.10.2018}
+	\date{14.11.2018}
 	%\subject{was das}
 	%\setbeamercovered{transparent}
 	\setbeamertemplate{navigation symbols}{}
@@ -73,8 +73,8 @@
 	\begin{columns}
 		\column{.6\linewidth}
 		\begin{enumerate}
-			\item $a_{low}\ \&\ a_{high}$ bestimmen
-			\item Skalieren auf neuen Bereich 
+			\item $a_{low}, a_{high} \rightarrow a_{min}, a_{max}$ bestimmen
+			\item Lineare Skalierung auf neuen Wertebereich 
 		\end{enumerate}	
 		\column{.4\linewidth}
 		\begin{figure}
@@ -85,7 +85,7 @@
 
 	\begin{block}{Kontrastanpassung}
 		\begin{equation*}
-		f_{ac}=a_{min} (a - a_{low}) \frac{a_{max}-a_{min}}{a_{high}-a_{low}}
+		f_{ac}=a_{min} + (a - a_{low}) \frac{a_{max}-a_{min}}{a_{high}-a_{low}}
 		\end{equation*}
 	\end{block}		
 		
@@ -108,7 +108,7 @@
 		\end{figure}		 	
 	\end{columns}	
 	\begin{itemize}
-		\item Nur teilweise Erfolgreich
+		\item Ausreißer/Rauschen im Wertebereich
 	\end{itemize}
 \end{frame}
 
@@ -134,7 +134,7 @@
 		\end{equation*}
 	\end{block}
 	\begin{itemize}
-		\item Festlegung der Grenzwertewerte $a'_{low}\ \&\ a'_{high}$
+		\item Berechnung der Grenzwertewerte $a'_{low}\ \&\ a'_{high}$
 	\end{itemize}
 
 \end{frame}
@@ -156,7 +156,19 @@
 		\end{figure}		 	
 	\end{columns}	
 	\begin{itemize}
-		\item Besser
+		\item Ausreißer/Rauschen geht in Sättigungsbereich
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Kontrastanpassung}
+	\begin{itemize}
+		\item Hier einen Programmablaufplan einfügen
+		\item 1. Einstellungen abfragen
+		\item 2. Sättigung >0%
+		\item (3. modifizierte aMin,aMax berechnen)
+		\item 4. Formel anwenden
+		\item (5. Clipping)
 	\end{itemize}
 \end{frame}
 
@@ -165,9 +177,9 @@
 \begin{frame}
 	\frametitle{Fazit}
 	\begin{itemize}
-		\item Einfache Kontrastanpassung führt selten zu brauchbarem Ergebnis
-		\item Clipping verbessert Ergebnis
-		\item Grenzwerte müssen besser bestimmt werden		
+		\item Effektivität linearer Skalierung durch Ausreißer eingeschränkt
+		\item Sättigungsbereich verbessert Ergebnis
+		\item Grenzwerte müssen besser bestimmt werden	(?)	
 	\end{itemize}
 \end{frame}
 
