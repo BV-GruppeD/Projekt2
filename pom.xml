@@ -15,11 +15,10 @@
 	<groupId>com.bv_gruppe_d</groupId>
 	<version>0.1.0-SNAPSHOT</version>
 
-	<name>Kantenerkennung</name>
 	<inceptionYear>2018</inceptionYear>
 	<organization>
 		<name>BV-Gruppe D</name>
-		<url>https://github.com/BV-GruppeD/KantenErkennung</url>
+		<url>https://github.com/BV-GruppeD/Projekt2</url>
 	</organization>
 	
 	<licenses>
@@ -62,14 +61,14 @@
 	</mailingLists>
 
 	<scm>
-		<connection>scm:git:git://github.com/BV-GruppeD/KantenErkennung</connection>
-		<developerConnection>scm:git:git@github.com/BV-GruppeD/KantenErkennung</developerConnection>
+		<connection>scm:git:git://github.com/BV-GruppeD/Projekt2</connection>
+		<developerConnection>scm:git:git@github.com/BV-GruppeD/Projekt2</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://github.com/BV-GruppeD/KantenErkennung</url>
+		<url>https://github.com/BV-GruppeD/Projekt2</url>
 	</scm>
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/BV-GruppeD/KantenErkennung/issues</url>
+		<url>https://github.com/BV-GruppeD/Projekt2/issues</url>
 	</issueManagement>
 	<ciManagement>
 		<system>None</system>
@@ -88,7 +87,8 @@
 			<artifactId>ij</artifactId>
 		</dependency>
 	</dependencies>
-	<artifactId>Kanten_Erkennung</artifactId>
-	<url>kantenerkennung/test.com</url>
-	<description>Lösung des Problems gegeben durch: Projekt 01 Kantenerkennung</description>
+	<url>kontrastanpassung/test.com</url>
+	<description>Lösung des Problems gegeben durch: Projekt 02</description>
+	<artifactId>Kontrastanpassung_PlugIn</artifactId>
+	<name>Kontrastanpassung</name>
 </project>
